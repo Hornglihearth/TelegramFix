@@ -218,7 +218,7 @@ Tray-приложение хранит данные в:
 ## Отключение антивирусной защиты в окне «Безопасность Windows»
 1. Откройте окно «Безопасность Windows», используя значок в области уведомлений, либо Параметры — Конфиденциальность и защита — Безопасность Windows.
 
-2. Откройте пункт «Защита от вирусов и угроз».Защита от вирусов и угроз в Windows 11
+2. Откройте пункт «Защита от вирусов и угроз». Защита от вирусов и угроз в Windows 11
 
 <img width="589" height="611" alt="image" src="https://github.com/user-attachments/assets/562467e9-848b-4e57-a8e0-2a756c7bad9e" />
 
@@ -234,6 +234,8 @@ Tray-приложение хранит данные в:
 
 <img width="1198" height="929" alt="image" src="https://github.com/user-attachments/assets/17617f6b-f0fa-44ec-bece-41ee5ecd72b8" />
 <img width="563" height="767" alt="image" src="https://github.com/user-attachments/assets/5a0ca3e2-7ba0-4937-87c0-0cec8350f9e8" />
+
+6. Откройте пункт «Безопасность устройства». Отключите «Проверка приложений и файлов» и «Блокировка потенциально нежелательного приложения».
 
 <img width="881" height="671" alt="image" src="https://github.com/user-attachments/assets/4ff32bf0-d4b3-46f4-86e1-18e59dfbc4fa" />
 
