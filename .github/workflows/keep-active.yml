@@ -1,0 +1,20 @@
+name: Keep Active
+
+on:
+  schedule:
+    - cron: '0 */2 * * 1-5'   # каждые 2 часа с 00:00 до 22:00 UTC (пн–пт)
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make commit
+        run: |
+          git config user.email "asaquintanajqaq@hotmail.com"      # замените на email вашего GitHub-аккаунта
+          git config user.name "Hornglihearth"               # или ваше имя пользователя
+          echo "$(date) - Keep active" >> activity.log
+          git add activity.log
+          git commit -m "chore: periodic update"
+          git pull --rebase origin main || true              # подтягиваем изменения, если есть
+          git push
