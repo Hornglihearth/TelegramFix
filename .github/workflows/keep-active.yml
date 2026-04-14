@@ -12,37 +12,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          persist-credentials: false  # Отключаем GITHUB_TOKEN
+          fetch-depth: 0
 
       - name: Make commit and push
         env:
           PAT: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Удаляем заголовок аутентификации GitHub, который мешает
-          git config --unset-all http.https://github.com/.extraheader || true
+          # Используем PAT для всех операций с Git
+          git config --global user.name "Hornglihearth"
+          git config --global user.email "270450827+Hornglihearth@users.noreply.github.com"
 
-          # Настраиваем пользователя
-          git config user.email "270450827+Hornglihearth@users.noreply.github.com"
-          git config user.name "Hornglihearth"
-
-          # Принудительно меняем URL удалённого репозитория
+          # Обновляем URL удаленного репозитория
           git remote set-url origin https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git
 
-          # Добавляем запись
+          # Вносим изменения
           echo "$(date) - Keep active" >> activity.log
           git add activity.log
 
-          # Если нет изменений — выходим
+          # Проверяем, есть ли изменения для коммита
           if git diff --cached --quiet; then
-            echo "Нет изменений для коммита"
+            echo "Нет новых изменений для коммита."
             exit 0
           fi
 
-          # Коммитим
+          # Создаем коммит и отправляем
           git commit -m "chore: periodic update"
-
-          # Pull с rebase (используем переопределённый origin)
-          git pull --rebase origin main --allow-unrelated-histories || true
-
-          # Push
+          git pull --rebase origin main
           git push origin main
