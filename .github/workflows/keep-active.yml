@@ -3,25 +3,36 @@ name: Keep Active
 on:
   schedule:
     - cron: '0 */2 * * 1-5'   # каждые 2 часа в будни (UTC)
+  workflow_dispatch:          # чтобы можно было запускать вручную для проверки
 
 permissions:
-  contents: read    # достаточно для checkout, но push будет через PAT
+  contents: read              # достаточно для checkout с PAT
 
 jobs:
   commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}   # 👈 используем PAT вместо GITHUB_TOKEN
+          token: ${{ secrets.PAT_TOKEN }}   # 👈 ключевая строчка
 
-      - name: Make commit
+      - name: Make commit and push
         run: |
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
           git config user.name "Hornglihearth"
+          
+          # Добавляем строку в activity.log
           echo "$(date) - Keep active" >> activity.log
+          
+          # Если файл новый или уже есть изменения
           git add activity.log
-          git commit -m "chore: periodic update"
-          git pull --rebase origin main || true
-          git push
+          
+          # Если есть изменения - коммитим
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: periodic update"
+            git pull --rebase origin main --allow-unrelated-histories || true
+            git push origin main
+          else
+            echo "Нет изменений для коммита"
+          fi
