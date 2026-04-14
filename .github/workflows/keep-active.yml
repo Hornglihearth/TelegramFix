@@ -2,36 +2,42 @@ name: Keep Active
 
 on:
   schedule:
-    - cron: '0 */2 * * 1-5'   # каждые 2 часа в будни (UTC)
-  workflow_dispatch:           # ручной запуск для проверки
+    - cron: '0 */2 * * 1-5'
+  workflow_dispatch:
 
 jobs:
   commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Make commit and push
+        env:
+          PAT: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Настройка пользователя
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
           git config user.name "Hornglihearth"
 
-          # Принудительно переключаем remote URL на использование PAT
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Hornglihearth/TelegramFix.git
-
-          # Добавляем запись
+          # Добавляем запись в лог
           echo "$(date) - Keep active" >> activity.log
           git add activity.log
 
-          # Коммитим только если есть изменения
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: periodic update"
-            git pull --rebase origin main --allow-unrelated-histories || true
-            git push origin main
-          else
+          # Если нет изменений (повторный запуск) — выходим
+          if git diff --cached --quiet; then
             echo "Нет изменений для коммита"
+            exit 0
           fi
+
+          git commit -m "chore: periodic update"
+
+          # Явно указываем URL с PAT для pull и push
+          REMOTE_URL="https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git"
+
+          # Pull с возможностью rebase (добавлен --allow-unrelated-histories на случай пустого репо)
+          git pull --rebase ${REMOTE_URL} main --allow-unrelated-histories || true
+
+          # Push с тем же URL
+          git push ${REMOTE_URL} main
