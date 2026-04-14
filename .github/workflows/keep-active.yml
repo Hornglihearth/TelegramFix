@@ -2,8 +2,8 @@ name: Keep Active
 
 on:
   schedule:
-    - cron: '0 */2 * * 1-5'   # каждые 2 часа в будни (UTC)
-  workflow_dispatch:           # ручной запуск
+    - cron: '0 */2 * * 1-5'
+  workflow_dispatch:
 
 jobs:
   commit:
@@ -12,26 +12,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: false   # отключаем GITHUB_TOKEN
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Make empty commit and push
         env:
           PAT: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Удаляем лишние заголовки аутентификации
           git config --unset-all http.https://github.com/.extraheader || true
-
-          # Настраиваем пользователя
           git config user.name "Hornglihearth"
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
-
-          # Переключаем remote URL на PAT
           git remote set-url origin https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git
 
-          # Создаём пустой коммит (без изменений в файлах)
+          # Полностью синхронизируемся с удалённой веткой
+          git fetch origin main
+          git reset --hard origin/main
+
+          # Создаём пустой коммит
           git commit --allow-empty -m "chore: periodic keep-alive"
 
-          # Подтягиваем изменения и пушим
-          git pull --rebase origin main --allow-unrelated-histories || true
+          # Отправляем изменения
           git push origin main
