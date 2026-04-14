@@ -24,12 +24,9 @@ jobs:
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git
 
-          # Полностью синхронизируемся с удалённой веткой
           git fetch origin main
           git reset --hard origin/main
 
-          # Создаём пустой коммит
           git commit --allow-empty -m "chore: periodic keep-alive"
 
-          # Отправляем изменения
           git push origin main
