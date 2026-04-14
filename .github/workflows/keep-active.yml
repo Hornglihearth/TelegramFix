@@ -3,10 +3,7 @@ name: Keep Active
 on:
   schedule:
     - cron: '0 */2 * * 1-5'   # каждые 2 часа в будни (UTC)
-  workflow_dispatch:          # чтобы можно было запускать вручную для проверки
-
-permissions:
-  contents: read              # достаточно для checkout с PAT
+  workflow_dispatch:           # ручной запуск для проверки
 
 jobs:
   commit:
@@ -15,20 +12,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}   # 👈 ключевая строчка
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Make commit and push
         run: |
+          # Настройка пользователя
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
           git config user.name "Hornglihearth"
-          
-          # Добавляем строку в activity.log
+
+          # Принудительно переключаем remote URL на использование PAT
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Hornglihearth/TelegramFix.git
+
+          # Добавляем запись
           echo "$(date) - Keep active" >> activity.log
-          
-          # Если файл новый или уже есть изменения
           git add activity.log
-          
-          # Если есть изменения - коммитим
+
+          # Коммитим только если есть изменения
           if ! git diff --cached --quiet; then
             git commit -m "chore: periodic update"
             git pull --rebase origin main --allow-unrelated-histories || true
