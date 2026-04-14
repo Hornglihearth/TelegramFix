@@ -2,8 +2,8 @@ name: Keep Active
 
 on:
   schedule:
-    - cron: '0 */2 * * 1-5'
-  workflow_dispatch:
+    - cron: '0 */2 * * 1-5'   # каждые 2 часа в будни (UTC)
+  workflow_dispatch:           # ручной запуск
 
 jobs:
   commit:
@@ -12,31 +12,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: false  # Отключаем GITHUB_TOKEN
+          persist-credentials: false   # отключаем GITHUB_TOKEN
           fetch-depth: 0
 
-      - name: Make commit and push
+      - name: Make empty commit and push
         env:
           PAT: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Используем PAT для всех операций с Git
-          git config --global user.name "Hornglihearth"
-          git config --global user.email "270450827+Hornglihearth@users.noreply.github.com"
+          # Удаляем лишние заголовки аутентификации
+          git config --unset-all http.https://github.com/.extraheader || true
 
-          # Обновляем URL удаленного репозитория
+          # Настраиваем пользователя
+          git config user.name "Hornglihearth"
+          git config user.email "270450827+Hornglihearth@users.noreply.github.com"
+
+          # Переключаем remote URL на PAT
           git remote set-url origin https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git
 
-          # Вносим изменения
-          echo "$(date) - Keep active" >> activity.log
-          git add activity.log
+          # Создаём пустой коммит (без изменений в файлах)
+          git commit --allow-empty -m "chore: periodic keep-alive"
 
-          # Проверяем, есть ли изменения для коммита
-          if git diff --cached --quiet; then
-            echo "Нет новых изменений для коммита."
-            exit 0
-          fi
-
-          # Создаем коммит и отправляем
-          git commit -m "chore: periodic update"
-          git pull --rebase origin main
+          # Подтягиваем изменения и пушим
+          git pull --rebase origin main --allow-unrelated-histories || true
           git push origin main
