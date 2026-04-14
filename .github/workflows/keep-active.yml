@@ -9,7 +9,7 @@ jobs:
   commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
@@ -18,26 +18,31 @@ jobs:
         env:
           PAT: ${{ secrets.PAT_TOKEN }}
         run: |
+          # Удаляем заголовок аутентификации GitHub, который мешает
+          git config --unset-all http.https://github.com/.extraheader || true
+
+          # Настраиваем пользователя
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
           git config user.name "Hornglihearth"
 
-          # Добавляем запись в лог
+          # Принудительно меняем URL удалённого репозитория
+          git remote set-url origin https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git
+
+          # Добавляем запись
           echo "$(date) - Keep active" >> activity.log
           git add activity.log
 
-          # Если нет изменений (повторный запуск) — выходим
+          # Если нет изменений — выходим
           if git diff --cached --quiet; then
             echo "Нет изменений для коммита"
             exit 0
           fi
 
+          # Коммитим
           git commit -m "chore: periodic update"
 
-          # Явно указываем URL с PAT для pull и push
-          REMOTE_URL="https://x-access-token:${PAT}@github.com/Hornglihearth/TelegramFix.git"
+          # Pull с rebase (используем переопределённый origin)
+          git pull --rebase origin main --allow-unrelated-histories || true
 
-          # Pull с возможностью rebase (добавлен --allow-unrelated-histories на случай пустого репо)
-          git pull --rebase ${REMOTE_URL} main --allow-unrelated-histories || true
-
-          # Push с тем же URL
-          git push ${REMOTE_URL} main
+          # Push
+          git push origin main
