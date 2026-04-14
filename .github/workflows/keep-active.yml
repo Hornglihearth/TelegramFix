@@ -4,17 +4,31 @@ on:
   schedule:
     - cron: '0 */2 * * 1-5'   # каждые 2 часа в будни (UTC)
 
+permissions:
+  contents: write               # 👈 даём право на push
+
 jobs:
   commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4   # 👈 обновлено до v4 (решает warning)
+
       - name: Make commit
         run: |
+          # Определяем имя текущей ветки (main или master)
+          BRANCH=$(git branch --show-current)
+          echo "Текущая ветка: $BRANCH"
+
           git config user.email "270450827+Hornglihearth@users.noreply.github.com"
           git config user.name "Hornglihearth"
+
           echo "$(date) - Keep active" >> activity.log
           git add activity.log
           git commit -m "chore: periodic update"
-          git pull --rebase origin main || true
-          git push
+
+          # Подтягиваем возможные изменения (защита от конфликтов)
+          git pull --rebase origin $BRANCH || true
+
+          # Отправляем изменения
+          git push origin $BRANCH
